@@ -1,0 +1,61 @@
+---
+- name: install velociraptor 0.72.4 linux amd64 on hosts
+  hosts: all
+  become: yes
+  vars_files:
+    - hosts.yml
+  tasks:
+    - name: ensure required packages are installed
+      dnf:
+        name:
+          - wget
+        state: present
+
+    - name: Create velociraptor opt directory if it does not exist
+      ansible.builtin.file:
+        path: /opt/velociraptor
+        state: directory
+        mode: '0755'
+
+    - name: download velociraptor binary
+      get_url:
+        url: https://github.com/Velocidex/velociraptor/releases/download/v0.72/velociraptor-v0.72.4-linux-amd64
+        dest: /opt/velociraptor/velociraptor-bin
+        mode: '0755'
+
+    - name: verify velociraptor binary is downloaded
+      stat:
+        path: /opt/velociraptor/velociraptor-bin
+      register: velociraptor_file
+
+    - name: Create server's config
+      shell: |
+        /opt/velociraptor/velociraptor-bin config generate --merge \
+          '{
+            "Client": {
+              "server_urls": ["https://{{ansible_default_ipv4.address}}:8000/"],
+              "use_self_signed_ssl": true
+            },
+            "API": {
+              "hostname": "{{ansible_default_ipv4.address}}",
+              "bind_address": "0.0.0.0",
+              "bind_port": 8001
+            },
+            "GUI": {
+              "bind_address": "0.0.0.0",
+              "bind_port": 8889,
+              "initial_users": [
+                {
+                  "name": "LisDem",
+                  "password_hash": "74d5e17c96d70cc98fa052de1c9a81bfc95cb248e9df97d2a1ba7961d5b756d4",
+                  "password_salt": "42dffe7dfd846796debd054a6fa580dc4d2ec0cc8fb0485a524872ae3bd2c023"
+                }
+              ]
+            },
+            "Frontend": {
+              "hostname": "{{ansible_default_ipv4.address}}",
+              "bind_address": "0.0.0.0",
+              "bind_port": 8000
+            }
+          }' > /opt/velociraptor/server.config.yaml
+      when: velociraptor_file.stat.exists
