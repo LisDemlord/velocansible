@@ -11,11 +11,18 @@
           - wget
         state: present
 
-    - name: Create velociraptor opt directory if it does not exist
+    - name: create velociraptor opt directory if it does not exist
       ansible.builtin.file:
         path: /opt/velociraptor
         state: directory
         mode: '0755'
+
+    - name: create velociraptor etc directory if it does not exist
+      ansible.builtin.file:
+        path: /etc/velociraptor
+        state: directory
+        mode: '0755'
+
 
     - name: download velociraptor binary
       get_url:
@@ -28,7 +35,7 @@
         path: /opt/velociraptor/velociraptor-bin
       register: velociraptor_file
 
-    - name: Create server's config
+    - name: create server's config
       shell: |
         /opt/velociraptor/velociraptor-bin config generate --merge \
           '{
@@ -57,5 +64,8 @@
               "bind_address": "0.0.0.0",
               "bind_port": 8000
             }
-          }' > /opt/velociraptor/server.config.yaml
+          }' > /etc/velociraptor/server.config.yaml
       when: velociraptor_file.stat.exists
+
+    - name: generate server's rpm package
+      ansible.builtin.shell: /opt/velociraptor/velociraptor-bin --config /etc/velociraptor/server.config.yaml rpm server --output /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
