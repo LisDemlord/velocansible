@@ -72,6 +72,10 @@
 
     - name: generate client's rpm package
       ansible.builtin.shell: /opt/velociraptor/velociraptor-bin --config /etc/velociraptor/server.config.yaml rpm client --output /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+    
+    - name: install server's RPM package if not installed
+      ansible.builtin.shell: rpm -q velociraptor-server || rpm -i /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
 
-    - name: install rpm package for server
-      ansible.builtin.shell: rpm -i /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+    - name: install client's RPM package if not installed
+      ansible.builtin.shell: rpm -q velociraptor-client || rpm -i /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+
