@@ -23,24 +23,23 @@
         state: directory
         mode: '0755'
 
-
     - name: download velociraptor binary
       get_url:
         url: https://github.com/Velocidex/velociraptor/releases/download/v0.72/velociraptor-v0.72.4-linux-amd64
-        dest: /opt/velociraptor/velociraptor-bin
+        dest: /opt/velociraptor/velociraptor
         mode: '0755'
 
     - name: verify velociraptor binary is downloaded
       stat:
-        path: /opt/velociraptor/velociraptor-bin
+        path: /opt/velociraptor/velociraptor
       register: velociraptor_file
 
     - name: create server's config
       shell: |
-        /opt/velociraptor/velociraptor-bin config generate --merge \
+        /opt/velociraptor/velociraptor config generate --merge \
           '{
             "Client": {
-              "server_urls": ["https://{{ansible_default_ipv4.address}}:8000/"],
+              "server_urls": ["https://{{ansible_default_ipv4.address}}:443/"],
               "use_self_signed_ssl": true
             },
             "API": {
@@ -50,7 +49,7 @@
             },
             "GUI": {
               "bind_address": "0.0.0.0",
-              "bind_port": 8889,
+              "bind_port": 80,
               "initial_users": [
                 {
                   "name": "LisDem",
@@ -62,16 +61,16 @@
             "Frontend": {
               "hostname": "{{ansible_default_ipv4.address}}",
               "bind_address": "0.0.0.0",
-              "bind_port": 8000
+              "bind_port": 443
             }
           }' > /etc/velociraptor/server.config.yaml
       when: velociraptor_file.stat.exists
 
     - name: generate server's rpm package
-      ansible.builtin.shell: /opt/velociraptor/velociraptor-bin --config /etc/velociraptor/server.config.yaml rpm server --output /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+      ansible.builtin.shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm server --output /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
 
     - name: generate client's rpm package
-      ansible.builtin.shell: /opt/velociraptor/velociraptor-bin --config /etc/velociraptor/server.config.yaml rpm client --output /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+      ansible.builtin.shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm client --output /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
     
     - name: install server's RPM package if not installed
       ansible.builtin.shell: rpm -q velociraptor-server || rpm -i /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
@@ -79,3 +78,14 @@
     - name: install client's RPM package if not installed
       ansible.builtin.shell: rpm -q velociraptor-client || rpm -i /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
 
+    - name: Change ownership of inventory.json.db
+      ansible.builtin.file:
+        path: /var/tmp/velociraptor/config/inventory.json.db
+        owner: velociraptor
+        group: velociraptor
+        state: file
+
+    - name: restart velociraptor_server service
+      ansible.builtin.systemd:
+        name: velociraptor_server.service
+        state: restarted
