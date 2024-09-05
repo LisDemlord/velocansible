@@ -1,0 +1,14 @@
+- name: installing the RPM package on client machines
+  hosts: clients
+  become: yes
+  vars_files:
+    - hosts.yml
+  tasks:
+    - name: copying the RPM package to client machines
+      copy:
+        src: /tmp/velociraptor-client-0.72.4.x86_64.rpm
+        dest: /tmp/velociraptor-client-0.72.4.x86_64.rpm
+
+    - name: installing the RPM package
+      ansible.builtin.shell: rpm -q velociraptor-client || rpm -i /tmp/velociraptor-client-0.72.4.x86_64.rpm
+
