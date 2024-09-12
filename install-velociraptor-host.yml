@@ -6,7 +6,7 @@
     - hosts.yml
   tasks:
     - name: ensure required packages are installed
-      dnf:
+      ansible.builtin.dnf:
         name:
           - wget
         state: present
@@ -18,7 +18,7 @@
         mode: '0755'
 
     - name: create velociraptor etc directory if it does not exist
-      ansible.builtin.file:
+      file:
         path: /etc/velociraptor
         state: directory
         mode: '0755'
@@ -67,26 +67,32 @@
       when: velociraptor_file.stat.exists
 
     - name: generate server's rpm package
-      ansible.builtin.shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm server --output /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+      shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm server --output /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
 
     - name: generate client's rpm package
-      ansible.builtin.shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm client --output /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+      shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm client --output /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
     
     - name: install server's RPM package if not installed
-      ansible.builtin.shell: rpm -q velociraptor-server || rpm -i /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+      dnf:
+        name: /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+        state: present
+        disable_gpg_check: yes
 
     - name: install client's RPM package if not installed
-      ansible.builtin.shell: rpm -q velociraptor-client || rpm -i /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+      dnf:
+        name: /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+        state: present
+        disable_gpg_check: yes
 
     - name: Change ownership of inventory.json.db
-      ansible.builtin.file:
+      file:
         path: /var/tmp/velociraptor/config/inventory.json.db
         owner: velociraptor
         group: velociraptor
         state: file
 
     - name: restart velociraptor_server service
-      ansible.builtin.systemd:
+      systemd:
         name: velociraptor_server.service
         state: restarted
 

@@ -10,5 +10,7 @@
         dest: /tmp/velociraptor-client-0.72.4.x86_64.rpm
 
     - name: installing the RPM package
-      ansible.builtin.shell: rpm -q velociraptor-client || rpm -i /tmp/velociraptor-client-0.72.4.x86_64.rpm
-
+      dnf:
+        name: /tmp/velociraptor-client-0.72.4.x86_64.rpm
+        state: present
+        disable_gpg_check: yes
