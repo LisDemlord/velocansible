@@ -2,7 +2,7 @@
   hosts: clients
   become: yes
   vars_files:
-    - hosts.yml
+    - vault.yml
   tasks:
     - name: copying the RPM package to client machines
       copy:
