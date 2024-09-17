@@ -96,22 +96,84 @@
         name: velociraptor_server.service
         state: restarted
 
-    - name: allow HTTP (port 80) in public zone
+    - name: Check if firewalld is active
+      command: "systemctl is-active firewalld"
+      register: firewalld_status
+      ignore_errors: yes
+
+    - name: Check if iptables is active
+      command: "iptables -L"
+      register: iptables_status
+      ignore_errors: yes
+
+    - name: Check if nftables is active
+      command: "nft list ruleset"
+      register: nftables_status
+      ignore_errors: yes
+
+    - name: Allow HTTP (port 80) in firewalld
       firewalld:
         zone: public
         port: 80/tcp
         state: enabled
         permanent: yes
+      when: firewalld_status.stdout == "active"
 
-    - name: allow HTTPS (port 443) in public zone
+    - name: Allow HTTPS (port 443) in firewalld
       firewalld:
         zone: public
         port: 443/tcp
         state: enabled
         permanent: yes
+      when: firewalld_status.stdout == "active"
 
-    - name: Reload firewalld to apply changes
-      command: firewall-cmd --reload
+    - name: Allow HTTP (port 80) in iptables
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: 80
+        jump: ACCEPT
+      when: iptables_status.rc == 0 and firewalld_status.rc != 0
+
+    - name: Allow HTTPS (port 443) in iptables
+      iptables:
+        chain: INPUT
+        protocol: tcp
+        destination_port: 443
+        jump: ACCEPT
+      when: iptables_status.rc == 0 and firewalld_status.rc != 0
+
+    - name: Allow HTTP (port 80) in nftables
+      command: "nft add rule ip filter input tcp dport 80 accept"
+      when: nftables_status.rc == 0 and firewalld_status.rc != 0 and iptables_status.rc != 0
+
+    - name: Allow HTTPS (port 443) in nftables
+      command: "nft add rule ip filter input tcp dport 443 accept"
+      when: nftables_status.rc == 0 and firewalld_status.rc != 0 and iptables_status.rc != 0
+
+    - name: Reload firewalld if it is active
+      command: "systemctl reload firewalld"
+      when: firewalld_status.stdout == "active"
+
+    - name: Ensure /etc/iptables directory exists if iptables is active
+      file:
+        path: /etc/iptables
+        state: directory
+      when: iptables_status.rc == 0 and firewalld_status.rc != 0
+
+    - name: Save iptables rules if active
+      shell: "iptables-save > /etc/iptables/rules.v4"
+      when: iptables_status.rc == 0 and firewalld_status.rc != 0
+
+    - name: Ensure /etc/nftables directory exists if nftables is active
+      file:
+        path: /etc/nftables
+        state: directory
+      when: nftables_status.rc == 0 and firewalld_status.rc != 0 and iptables_status.rc != 0
+
+    - name: Save nftables rules if active
+      shell: "nft list ruleset > /etc/nftables/rules.v4"
+      when: nftables_status.rc == 0 and firewalld_status.rc != 0 and iptables_status.rc != 0
 
     - name: copying the client package
       fetch:
