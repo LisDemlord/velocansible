@@ -1,0 +1,96 @@
+- name: ensure required packages are installed
+  dnf:
+    name:
+      - wget
+    state: present
+
+- name: create velociraptor opt directory if it does not exist
+  file:
+    path: /opt/velociraptor
+    state: directory
+    mode: "0755"
+
+- name: create velociraptor etc directory if it does not exist
+  file:
+    path: /etc/velociraptor
+    state: directory
+    mode: "0755"
+
+- name: download velociraptor binary
+  get_url:
+    url: https://github.com/Velocidex/velociraptor/releases/download/v0.72/velociraptor-v0.72.4-linux-amd64
+    dest: /opt/velociraptor/velociraptor
+    mode: "0755"
+
+- name: verify velociraptor binary is downloaded
+  stat:
+    path: /opt/velociraptor/velociraptor
+  register: velociraptor_file
+
+- name: create server's config
+  shell: |
+    /opt/velociraptor/velociraptor config generate --merge \
+      '{
+        "Client": {
+          "server_urls": ["https://{{ansible_default_ipv4.address}}:443/"],
+          "use_self_signed_ssl": true
+        },
+        "API": {
+          "hostname": "{{ansible_default_ipv4.address}}",
+          "bind_address": "0.0.0.0",
+          "bind_port": 8001
+        },
+        "GUI": {
+          "bind_address": "0.0.0.0",
+          "bind_port": 80,
+          "initial_users": [
+            {
+              "name": "LisDem",
+              "password_hash": "74d5e17c96d70cc98fa052de1c9a81bfc95cb248e9df97d2a1ba7961d5b756d4",
+              "password_salt": "42dffe7dfd846796debd054a6fa580dc4d2ec0cc8fb0485a524872ae3bd2c023"
+            }
+          ]
+        },
+        "Frontend": {
+          "hostname": "{{ansible_default_ipv4.address}}",
+          "bind_address": "0.0.0.0",
+          "bind_port": 443
+        }
+      }' > /etc/velociraptor/server.config.yaml
+  when: velociraptor_file.stat.exists
+
+- name: generate server's rpm package
+  shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm server --output /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+
+- name: generate client's rpm package
+  shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm client --output /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+
+- name: install server's RPM package if not installed
+  dnf:
+    name: /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+    state: present
+    disable_gpg_check: yes
+
+- name: install client's RPM package if not installed
+  dnf:
+    name: /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+    state: present
+    disable_gpg_check: yes
+
+- name: Change ownership of inventory.json.db
+  file:
+    path: /var/tmp/velociraptor/config/inventory.json.db
+    owner: velociraptor
+    group: velociraptor
+    state: file
+
+- name: restart velociraptor_server service
+  systemd:
+    name: velociraptor_server.service
+    state: restarted
+
+- name: copying the client package
+  fetch:
+    src: /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+    dest: /tmp/
+    flat: yes

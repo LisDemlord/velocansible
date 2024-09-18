@@ -1,0 +1,10 @@
+# main-host.yml
+---
+- name: Deploy Velociraptor on hosts
+  hosts: servers
+  become: yes
+  vars_files:
+    - vault.yml
+  roles:
+    - install_velociraptor_host
+    - configuring_firewall
