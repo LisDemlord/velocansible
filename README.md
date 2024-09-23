@@ -5,23 +5,38 @@ Velocansible — это проект, предназначенный для ав
 ## Структура проекта
 
 ```
-velocansible/
-├── main-host.yml                     # Playbook для развертывания Velociraptor на хостах
-├── main-clients.yml                  # Playbook для развертывания Velociraptor на клиентских машинах
-├── inventory/                        # Директория с файлами инвентаризации
-│   └── hosts.yml                     # Файл инвентаризации, содержащий информацию о хостах
-├── roles/                            # Директория с ролями Ansible
-│   ├── configuring_firewall/         # Роль для настройки брандмауэра
-│   │   └── tasks/                    # Директория с задачами роли
-│   │       └── main.yml              # Основной файл задач для настройки брандмауэра
-│   ├── install_velociraptor_host/    # Роль для установки Velociraptor на хостах
-│   │   └── tasks/                    # Директория с задачами роли
-│   │       └── main.yml              # Основной файл задач для установки Velociraptor на хостах
-│   └── install_velociraptor_clients/ # Роль для установки Velociraptor на клиентских машинах
-│       └── tasks/                    # Директория с задачами роли
-│           └── main.yml              # Основной файл задач для установки Velociraptor на клиентских машинах
-├── vault.yml                         # Файл с зашифрованными переменными
-└── README.md                         # Этот файл
+velocansible/                             # Основная директория проекта Velocansible
+├── ansible.cfg                           # Конфигурационный файл Ansible, содержащий настройки для выполнения плейбуков
+├── inventory/                            # Директория с файлами инвентаризации
+│   └── hosts.yml                         # Файл инвентаризации, содержащий информацию о хостах для управления
+├── playbooks/                            # Директория с плейбуками Ansible
+│   ├── install-clients.yml               # Плейбук для установки Velociraptor на клиентских машинах
+│   ├── install-host.yml                  # Плейбук для установки Velociraptor на хостах
+│   ├── rollback-clients.yml              # Плейбук для отката изменений на клиентских машинах
+│   └── rollback-host.yml                 # Плейбук для отката изменений на хостах
+├── README.md                             # Документация проекта, содержащая информацию о его использовании и настройке
+├── roles/                                # Директория с ролями Ansible
+│   ├── configuring_iptables/             # Роль для настройки iptables (брандмауэра)
+│   │   └── tasks/                        # Директория с задачами роли
+│   │       └── main.yml                  # Основной файл задач для настройки iptables
+│   ├── install_velociraptor_clients/     # Роль для установки Velociraptor на клиентских машинах
+│   │   └── tasks/                        # Директория с задачами роли
+│   │       └── main.yml                  # Основной файл задач для установки Velociraptor на клиентских машинах
+│   ├── install_velociraptor_host/        # Роль для установки Velociraptor на хостах
+│   │   └── tasks/                        # Директория с задачами роли
+│   │       └── main.yml                  # Основной файл задач для установки Velociraptor на хостах
+│   ├── rollback_iptables/                # Роль для отката настроек iptables
+│   │   └── tasks/                        # Директория с задачами роли
+│   │       └── main.yml                  # Основной файл задач для отката настроек iptables
+│   ├── rollback_velociraptor_clients/    # Роль для отката изменений на клиентских машинах
+│   │   └── tasks/                        # Директория с задачами роли
+│   │       └── main.yml                  # Основной файл задач для отката изменений на клиентских машинах
+│   └── rollback_velociraptor_host/       # Роль для отката изменений на хостах
+│       └── tasks/                        # Директория с задачами роли
+│           └── main.yml                  # Основной файл задач для отката изменений на хостах
+├── runner.py                             # Скрипт для запуска Ansible-процессов
+├── subprocess/                           # Директория для вспомогательных скриптов или процессов
+└── vault.yml                             # Файл с зашифрованными переменными, используемыми в плейбуках
 ```
 
 ## Установка
@@ -38,24 +53,19 @@ velocansible/
 
 ## Использование
 
-### Развертывание на хостах
+### Развертывание
 
-Чтобы развернуть Velociraptor на хостах, выполните следующую команду:
-
-```bash
-ansible-playbook -i inventory/hosts.yml main-host.yml --vault-password-file=[ваш файл с паролем]
-```
-
-### Развертывание на клиентских машинах
-
-Чтобы развернуть Velociraptor на клиентских машинах, выполните следующую команду:
+Запустите скрипт и следуйте указаниям:
 
 ```bash
-ansible-playbook -i inventory/hosts.yml main-clients.yml --vault-password-file=[ваш файл с паролем]
+./runner.py
 ```
 
 ## Структура ролей
 
-- **configuring_firewall**: Роль для настройки iptables на серверах.
+- **configuring_iptables**: Роль для настройки iptables на серверах.
 - **install_velociraptor_host**: Роль для установки Velociraptor на серверной части.
 - **install_velociraptor_clients**: Роль для установки Velociraptor на клиентских машинах.
+- **rollback_iptables**: Роль для отката настроек iptables.
+- **rollback_velociraptor_clients**: Роль для отката изменений на клиентских машинах.
+- **rollback_velociraptor_host**: Роль для отката изменений на хостах.
