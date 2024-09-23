@@ -1,3 +1,4 @@
+---
 - name: copying the RPM package to client machines
   copy:
     src: /tmp/velociraptor-client-0.72.4.x86_64.rpm

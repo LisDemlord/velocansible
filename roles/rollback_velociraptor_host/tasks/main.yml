@@ -1,0 +1,35 @@
+---
+- name: remove velociraptor client's RPM package if installed
+  dnf:
+    name: velociraptor-client-0.72.4-A.x86_64
+    state: absent
+
+- name: remove server's RPM package if installed
+  dnf:
+    name: velociraptor-server-0.72.4-A.x86_64
+    state: absent
+
+- name: remove velociraptor opt directory if it exists
+  file:
+    path: /opt/velociraptor
+    state: absent
+
+- name: remove velociraptor etc directory if it exists
+  file:
+    path: /etc/velociraptor
+    state: absent
+
+- name: remove writeback.yaml file for velociraptor
+  file:
+    path: /etc/velociraptor.writeback.yaml
+    state: absent
+
+- name: remove writeback.yaml.bak file for velociraptor
+  file:
+    path: /etc/velociraptor.writeback.yaml.bak
+    state: absent
+
+- name: remove velociraptor /var/tmp/ directory if it exists
+  file:
+    path: /var/tmp/velociraptor
+    state: absent
