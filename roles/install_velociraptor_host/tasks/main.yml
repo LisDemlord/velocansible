@@ -28,35 +28,40 @@
     path: /opt/velociraptor/velociraptor
   register: velociraptor_file
 
-- name: create server's config
-  shell: |
+- name: Set IP address from specific interface
+  set_fact:                   
+    server_ip: "{{ ansible_enp2s0f3u2u4.ipv4.address }}"
+  when: ansible_enp2s0f3u2u4 is defined
+                               
+- name: create server's config                                                                                                                                                            
+  shell: |                    
     /opt/velociraptor/velociraptor config generate --merge \
-      '{
-        "Client": {
-          "server_urls": ["https://{{ansible_default_ipv4.address}}:443/"],
+      '{                             
+        "Client": {                  
+          "server_urls": ["https://{{ server_ip }}:443/"],
           "use_self_signed_ssl": true
-        },
-        "API": {
-          "hostname": "{{ansible_default_ipv4.address}}",
-          "bind_address": "0.0.0.0",
-          "bind_port": 8001
-        },
-        "GUI": {
-          "bind_address": "0.0.0.0",
-          "bind_port": 80,
-          "initial_users": [
-            {
-              "name": "LisDem",
+        },                           
+        "API": {                     
+          "hostname": "{{ server_ip }}",
+          "bind_address": "0.0.0.0", 
+          "bind_port": 8001          
+        },                           
+        "GUI": {                     
+          "bind_address": "0.0.0.0", 
+          "bind_port": 80,           
+          "initial_users": [         
+            {                        
+              "name": "LisDem",      
               "password_hash": "74d5e17c96d70cc98fa052de1c9a81bfc95cb248e9df97d2a1ba7961d5b756d4",
               "password_salt": "42dffe7dfd846796debd054a6fa580dc4d2ec0cc8fb0485a524872ae3bd2c023"
-            }
-          ]
-        },
-        "Frontend": {
-          "hostname": "{{ansible_default_ipv4.address}}",
-          "bind_address": "0.0.0.0",
-          "bind_port": 443
-        }
+            }                       
+          ]                          
+        },                           
+        "Frontend": {                
+          "hostname": "{{ server_ip }}",
+          "bind_address": "0.0.0.0", 
+          "bind_port": 443           
+        }                                   
       }' > /etc/velociraptor/server.config.yaml
   when: velociraptor_file.stat.exists
 
