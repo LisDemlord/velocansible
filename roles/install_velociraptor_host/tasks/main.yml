@@ -72,12 +72,6 @@
     state: present
     disable_gpg_check: yes
 
-- name: install client's RPM package if not installed
-  dnf:
-    name: /tmp/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
-    state: present
-    disable_gpg_check: yes
-
 - name: Change ownership of inventory.json.db
   file:
     path: /var/tmp/velociraptor/config/inventory.json.db

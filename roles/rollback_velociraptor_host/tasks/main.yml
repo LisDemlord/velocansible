@@ -1,15 +1,10 @@
 ---
-- name: remove velociraptor client's RPM package if installed
-  dnf:
-    name: velociraptor-client-0.72.4-A.x86_64
-    state: absent
-
 - name: remove server's RPM package if installed
   dnf:
     name: velociraptor-server-0.72.4-A.x86_64
     state: absent
 
-- name: remove velociraptor opt directory if it exists
+- name: remove velociraptor tmp directory if it exists
   file:
     path: /tmp/velociraptor
     state: absent
