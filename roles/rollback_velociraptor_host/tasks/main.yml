@@ -11,7 +11,7 @@
 
 - name: remove velociraptor opt directory if it exists
   file:
-    path: /opt/velociraptor
+    path: /tmp/velociraptor
     state: absent
 
 - name: remove velociraptor etc directory if it exists

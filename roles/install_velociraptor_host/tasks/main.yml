@@ -7,7 +7,7 @@
 
 - name: create velociraptor opt directory if it does not exist
   file:
-    path: /opt/velociraptor
+    path: /tmp/velociraptor
     state: directory
     mode: "0755"
 
@@ -20,17 +20,17 @@
 - name: download velociraptor binary
   get_url:
     url: https://github.com/Velocidex/velociraptor/releases/download/v0.72/velociraptor-v0.72.4-linux-amd64
-    dest: /opt/velociraptor/velociraptor
+    dest: /tmp/velociraptor/velociraptor
     mode: "0755"
 
 - name: verify velociraptor binary is downloaded
   stat:
-    path: /opt/velociraptor/velociraptor
+    path: /tmp/velociraptor/velociraptor
   register: velociraptor_file
 
 - name: create server's config
   shell: |
-    /opt/velociraptor/velociraptor config generate --merge \
+    /tmp/velociraptor/velociraptor config generate --merge \
       '{
         "Client": {
           "server_urls": ["https://{{ansible_default_ipv4.address}}:443/"],
@@ -61,20 +61,20 @@
   when: velociraptor_file.stat.exists
 
 - name: generate server's rpm package
-  shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm server --output /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+  shell: /tmp/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm server --output /tmp/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
 
 - name: generate client's rpm package
-  shell: /opt/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm client --output /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+  shell: /tmp/velociraptor/velociraptor --config /etc/velociraptor/server.config.yaml rpm client --output /tmp/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
 
 - name: install server's RPM package if not installed
   dnf:
-    name: /opt/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
+    name: /tmp/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
     state: present
     disable_gpg_check: yes
 
 - name: install client's RPM package if not installed
   dnf:
-    name: /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+    name: /tmp/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
     state: present
     disable_gpg_check: yes
 
@@ -92,6 +92,6 @@
 
 - name: copying the client package
   fetch:
-    src: /opt/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
+    src: /tmp/velociraptor/velociraptor-client-0.72.4.x86_64.rpm
     dest: /tmp/
     flat: yes
