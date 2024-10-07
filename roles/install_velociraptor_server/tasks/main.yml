@@ -33,7 +33,7 @@
     /tmp/velociraptor/velociraptor config generate --merge \
       '{
         "Client": {
-          "server_urls": ["https://{{ansible_default_ipv4.address}}:443/"],
+          "server_urls": ["https://{{ansible_default_ipv4.address}}:8443/"],
           "use_self_signed_ssl": true
         },
         "API": {
@@ -43,7 +43,7 @@
         },
         "GUI": {
           "bind_address": "0.0.0.0",
-          "bind_port": 80,
+          "bind_port": 8080,
           "initial_users": [
             {
               "name": "LisDem",
@@ -55,7 +55,7 @@
         "Frontend": {
           "hostname": "{{ansible_default_ipv4.address}}",
           "bind_address": "0.0.0.0",
-          "bind_port": 443
+          "bind_port": 8443
         }
       }' > /etc/velociraptor/server.config.yaml
   when: velociraptor_file.stat.exists
