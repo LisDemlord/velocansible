@@ -1,9 +1,9 @@
 ---
-- name: deploy Velociraptor on hosts
+- name: deploy Velociraptor on server
   hosts: servers
   become: yes
   vars_files:
     - ../vault.yml
   roles:
-    - install_velociraptor_host
+    - install_velociraptor_server
     - configuring_iptables

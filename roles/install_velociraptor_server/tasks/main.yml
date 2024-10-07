@@ -72,7 +72,7 @@
     state: present
     disable_gpg_check: yes
 
-- name: Change ownership of inventory.json.db
+- name: change ownership of inventory.json.db
   file:
     path: /var/tmp/velociraptor/config/inventory.json.db
     owner: velociraptor

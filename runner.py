@@ -24,33 +24,33 @@ def run_playbook(playbook):
             for line in process.stdout:
                 # Color the output based on the content
                 if "ok:" in line and "playbook:" not in line:
-                    print(Colors.GREEN + line.strip() + Colors.RESET)  # Print successful tasks in green
+                    print("  " + Colors.GREEN + line.strip() + Colors.RESET)  # Print successful tasks in green
                 elif "changed:" in line:
-                    print(Colors.ORANGE + line.strip() + Colors.RESET)  # Print changed tasks in orange
+                    print("  " + Colors.ORANGE + line.strip() + Colors.RESET)  # Print changed tasks in orange
                 elif "fatal:" in line or "ERROR" in line:
-                    print(Colors.RED + line.strip() + Colors.RESET)  # Print errors in red
+                    print("  " + Colors.RED + line.strip() + Colors.RESET)  # Print errors in red
                 elif "PLAY [" in line:
-                    print(Colors.ORANGE + "=== Starting Play: " + line.strip().replace('*', '') + " ===" + Colors.RESET)  # Indicate the start of a play
+                    print("  " + Colors.ORANGE + "=== Starting Play: " + line.strip().replace('*', '') + " ===" + Colors.RESET)  # Indicate the start of a play
                 elif "TASK [" in line:
-                    print(">>> " + line.strip().replace('*', ''))  # Indicate the current task
+                    print("  >>> " + line.strip().replace('*', ''))  # Indicate the current task
                 elif "PLAY RECAP" in line:
-                    print(Colors.ORANGE + "=== " + line.strip().replace('*', '') + " ===" + Colors.RESET)  # Indicate the recap of the play
+                    print("  " + Colors.ORANGE + "=== " + line.strip().replace('*', '') + " ===" + Colors.RESET)  # Indicate the recap of the play
                 else:
                     print(line.strip())  # Print other lines as they are
             process.wait()  # Wait for the process to complete
             if process.returncode != 0:
                 raise subprocess.CalledProcessError(process.returncode, command)  # Raise an error if the playbook execution failed
         
-        print(f"\n{Colors.GREEN}Successfully executed playbook: {playbook} {Colors.RESET}\n")  # Print success message
+        print(f"\n  {Colors.GREEN}Successfully executed playbook: {playbook} {Colors.RESET}\n")  # Print success message
     except subprocess.CalledProcessError as e:
-        print(f"{Colors.RED}Error executing playbook {playbook}: {e}{Colors.RESET}\n")  # Print error message
+        print(f"  {Colors.RED}Error executing playbook {playbook}: {e}{Colors.RESET}\n")  # Print error message
         if e.stdout:  # Check if e.stdout is not None
             print(e.stdout)  # Print the error logs if needed
 
 def install_velociraptor(role):
     # Select the appropriate playbook based on role
-    if role == "host":
-        playbook = 'playbooks/install-host.yml'
+    if role == "server":
+        playbook = 'playbooks/install-server.yml'
     else:
         playbook = 'playbooks/install-clients.yml'
     
@@ -58,8 +58,8 @@ def install_velociraptor(role):
 
 def rollback_velociraptor(role):
     # Select the appropriate playbook based on role
-    if role == "host":
-        playbook = 'playbooks/rollback-host.yml'
+    if role == "server":
+        playbook = 'playbooks/rollback-server.yml'
     else:
         playbook = 'playbooks/rollback-clients.yml'
     
@@ -72,28 +72,28 @@ def get_user_choice(prompt, choices):
         if choice in choices:
             return choice
         else:
-            print(f"\n{Colors.ORANGE}Invalid choice. Please select from {' or '.join(choices)}.{Colors.RESET}")
+            print(f"\n   {Colors.RED}Invalid choice. Please select from {' or '.join(choices)}.{Colors.RESET}")
 
 def main():
     # Mapping from short action codes to full action names
     action_map = {'i': 'install', 'r': 'rollback'}
     
     # Prompt user for install or rollback
-    action = get_user_choice("\n>>> Do you want to (i)nstall or (r)ollback Velociraptor? (i/r): ", ['i', 'r'])
+    action = get_user_choice("\n  === Do you want to (i)nstall or (r)ollback Velociraptor? (i/r): ", ['i', 'r'])
     
-    # Prompt user for host or client
-    role = get_user_choice("\n>>> Is this for (h)ost or (c)lient? (h/c): ", ['h', 'c'])
+    # Prompt user for server or client
+    role = get_user_choice("\n  === Is this for (s)erver or (c)lient? (s/c): ", ['s', 'c'])
     
     # Perform the action based on user input
     if action == 'i':
-        install_velociraptor('host' if role == 'h' else 'client')
+        install_velociraptor('server' if role == 's' else 'client')
     else:
-        rollback_velociraptor('host' if role == 'h' else 'client')
+        rollback_velociraptor('server' if role == 's' else 'client')
     
-    # Allow to continue only if the first role is host
-    if role == 'h':
+    # Allow to continue only if the first role is server
+    if role == 's':
         action_full = action_map[action]
-        continue_same_action = get_user_choice(f"\n>>> Do you want to {action_full} the client as well? (y/n): ", ['y', 'n'])
+        continue_same_action = get_user_choice(f"\n  === Do you want to {action_full} the client as well? (y/n): ", ['y', 'n'])
         if continue_same_action == 'y':
             if action == 'i':
                 install_velociraptor('client')
