@@ -71,7 +71,7 @@
     name: /tmp/velociraptor/velociraptor-server-0.72.4.x86_64.rpm
     state: present
     disable_gpg_check: yes
-ei
+
 - name: Change ownership of inventory.json.db
   file:
     path: /var/tmp/velociraptor/config/inventory.json.db

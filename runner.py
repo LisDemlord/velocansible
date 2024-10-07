@@ -47,30 +47,58 @@ def run_playbook(playbook):
         if e.stdout:  # Check if e.stdout is not None
             print(e.stdout)  # Print the error logs if needed
 
-def install_velociraptor():
-    # List of playbooks for installation
-    playbooks = ['playbooks/install-host.yml', 'playbooks/install-clients.yml']
+def install_velociraptor(role):
+    # Select the appropriate playbook based on role
+    if role == "host":
+        playbook = 'playbooks/install-host.yml'
+    else:
+        playbook = 'playbooks/install-clients.yml'
     
-    for playbook in playbooks:
-        run_playbook(playbook)  # Run each playbook
+    run_playbook(playbook)  # Run the selected playbook
 
-def rollback_velociraptor():
-    # List of playbooks for rollback
-    playbooks = ['playbooks/rollback-host.yml', 'playbooks/rollback-clients.yml']
+def rollback_velociraptor(role):
+    # Select the appropriate playbook based on role
+    if role == "host":
+        playbook = 'playbooks/rollback-host.yml'
+    else:
+        playbook = 'playbooks/rollback-clients.yml'
     
-    for playbook in playbooks:
-        run_playbook(playbook)  # Run each playbook
+    run_playbook(playbook)  # Run the selected playbook
+
+def get_user_choice(prompt, choices):
+    # Get user input with validation loop
+    while True:
+        choice = input(prompt).strip().lower()
+        if choice in choices:
+            return choice
+        else:
+            print(f"\n{Colors.ORANGE}Invalid choice. Please select from {' or '.join(choices)}.{Colors.RESET}")
 
 def main():
-    # Prompt user for action
-    choice = input("Do you want to (i)nstall or (r)ollback Velociraptor? (i/r): ").strip().lower()
+    # Mapping from short action codes to full action names
+    action_map = {'i': 'install', 'r': 'rollback'}
     
-    if choice == 'i':
-        install_velociraptor()  # Call install function
-    elif choice == 'r':
-        rollback_velociraptor()  # Call rollback function
+    # Prompt user for install or rollback
+    action = get_user_choice("\n>>> Do you want to (i)nstall or (r)ollback Velociraptor? (i/r): ", ['i', 'r'])
+    
+    # Prompt user for host or client
+    role = get_user_choice("\n>>> Is this for (h)ost or (c)lient? (h/c): ", ['h', 'c'])
+    
+    # Perform the action based on user input
+    if action == 'i':
+        install_velociraptor('host' if role == 'h' else 'client')
     else:
-        print("Invalid choice. Please enter 'i' for install or 'r' for rollback.")  # Handle invalid input
+        rollback_velociraptor('host' if role == 'h' else 'client')
+    
+    # Allow to continue only if the first role is host
+    if role == 'h':
+        action_full = action_map[action]
+        continue_same_action = get_user_choice(f"\n>>> Do you want to {action_full} the client as well? (y/n): ", ['y', 'n'])
+        if continue_same_action == 'y':
+            if action == 'i':
+                install_velociraptor('client')
+            else:
+                rollback_velociraptor('client')
 
 if __name__ == "__main__":
     main()  # Execute the main function
