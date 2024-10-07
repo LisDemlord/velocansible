@@ -48,50 +48,29 @@ def run_playbook(playbook):
             print(e.stdout)  # Print the error logs if needed
 
 def install_velociraptor():
-    # Install the host
-    run_playbook('playbooks/install-host.yml')  # Run the playbook to install the host
+    # List of playbooks for installation
+    playbooks = ['playbooks/install-host.yml', 'playbooks/install-clients.yml']
     
-    # Loop to check user input
-    while True:
-        continue_install = input("Do you want to continue installation on clients? (y/n): ").strip().lower()
-        if continue_install == 'y':
-            run_playbook('playbooks/install-clients.yml')  # Run the playbook to install clients
-            break  # Exit the loop
-        elif continue_install == 'n':
-            print("Installation on clients skipped.")
-            break  # Exit the loop
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")  # Handle invalid input
+    for playbook in playbooks:
+        run_playbook(playbook)  # Run each playbook
 
 def rollback_velociraptor():
-    # Rollback the host
-    run_playbook('playbooks/rollback-host.yml')  # Run the playbook to rollback the host
+    # List of playbooks for rollback
+    playbooks = ['playbooks/rollback-host.yml', 'playbooks/rollback-clients.yml']
     
-    # Loop to check user input
-    while True:
-        continue_rollback = input("Do you want to continue rollback on clients? (y/n): ").strip().lower()
-        if continue_rollback == 'y':
-            run_playbook('playbooks/rollback-clients.yml')  # Run the playbook to rollback clients
-            break  # Exit the loop
-        elif continue_rollback == 'n':
-            print("Rollback on clients skipped.")
-            break  # Exit the loop
-        else:
-            print("Invalid input. Please enter 'y' or 'n'.")  # Handle invalid input
+    for playbook in playbooks:
+        run_playbook(playbook)  # Run each playbook
 
 def main():
-    # Loop to check user input
-    while True:
-        choice = input("Do you want to (i)nstall or (r)ollback Velociraptor? (i/r): ").strip().lower()
-        
-        if choice == 'i':
-            install_velociraptor()  # Call the install function
-            break  # Exit the loop
-        elif choice == 'r':
-            rollback_velociraptor()  # Call the rollback function
-            break  # Exit the loop
-        else:
-            print("Invalid choice. Please enter 'i' for install or 'r' for rollback.")  # Handle invalid input
+    # Prompt user for action
+    choice = input("Do you want to (i)nstall or (r)ollback Velociraptor? (i/r): ").strip().lower()
+    
+    if choice == 'i':
+        install_velociraptor()  # Call install function
+    elif choice == 'r':
+        rollback_velociraptor()  # Call rollback function
+    else:
+        print("Invalid choice. Please enter 'i' for install or 'r' for rollback.")  # Handle invalid input
 
 if __name__ == "__main__":
     main()  # Execute the main function
