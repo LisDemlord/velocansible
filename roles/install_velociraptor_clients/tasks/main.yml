@@ -1,10 +1,21 @@
 ---
-- name: copying the RPM package to client machines
+- name: check if the RPM package exists on the controller
+  stat:
+    path: /tmp/velociraptor-client-0.72.4.x86_64.rpm
+  register: rpm_file
+  delegate_to: localhost
+
+- name: fail if the RPM package does not exist
+  fail:
+    msg: "The file /tmp/velociraptor-client-0.72.4.x86_64.rpm was not found on the controller. The playbook is completed."
+  when: not rpm_file.stat.exists
+
+- name: Copying the RPM package to client machines
   copy:
     src: /tmp/velociraptor-client-0.72.4.x86_64.rpm
     dest: /tmp/velociraptor-client-0.72.4.x86_64.rpm
 
-- name: installing the RPM package
+- name: Installing the RPM package
   dnf:
     name: /tmp/velociraptor-client-0.72.4.x86_64.rpm
     state: present
