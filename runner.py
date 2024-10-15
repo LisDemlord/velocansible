@@ -15,6 +15,7 @@ def run_playbook(playbook):
         'ansible-playbook',
         '-i', 'inventory/hosts.yml',  # Inventory file
         playbook,  # Playbook to execute
+        '-bK',
         '--vault-password-file=/etc/.vault_pass.txt'  # Vault password file
     ]
     
